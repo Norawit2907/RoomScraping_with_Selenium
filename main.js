@@ -9,14 +9,16 @@ const { Builder, Browser, By } = require('selenium-webdriver');
     const title = await driver.getTitle();
     console.log('Page Title:', title);
 
-    const monday = await driver.findElements(By.xpath('//tr[td[strong/text() = "อังคาร"]]/td[position()>1 and @colspan]'));
+    const monday = await driver.findElements(By.xpath('//tr[td[strong/text() = "จันทร์"]]/td[position()>1 and @colspan]'));
     let count = 0, currentHour = 8, currentMinute = 0;
     // store subjects in dictionary
     let mondaySubjects = {}
 
     for(let td of monday){
       count += 1
-      const subjectText = await td.getText()
+      const subjectText = (await td.getText()).split("\n");
+      const subjectName = subjectText[0]
+      const subjectProfessor = subjectText[1]
       const colspan = await td.getAttribute("colspan")
 
       // if col is not a subject
@@ -45,13 +47,14 @@ const { Builder, Browser, By } = require('selenium-webdriver');
 
         const subjectEnd = currentHour.toString().padStart(2,'0') + ":" + currentMinute.toString().padStart(2,'0')
         
-        if(subjectText in mondaySubjects){
-          
-          
-          mondaySubjects[subjectText] = [mondaySubjects[subjectText][0], subjectEnd]
+        if(subjectName in mondaySubjects){
+          mondaySubjects[subjectName] = [mondaySubjects[subjectName][0], subjectEnd, mondaySubjects[subjectName][2]]
+          if( mondaySubjects[subjectName][2] != subjectProfessor){
+            mondaySubjects[subjectName][2].push(subjectProfessor)
+          }
         }
         else{
-          mondaySubjects[subjectText] = [subjectStart, subjectEnd]
+          mondaySubjects[subjectName] = [subjectStart, subjectEnd, [subjectProfessor]]
         }
 
         console.log("time : ",currentHour, ":", currentMinute);
