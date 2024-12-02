@@ -19,14 +19,14 @@ app.get('/room', async (req, res) => {
     
     if(dates == undefined || dates == ""){
         console.log("true");
-        subjects = await webscraper.getSubjects(room, semester, year, days)
+        subjects = await webscraper.getSubjectsFromDays(room, semester, year, days)
         // console.log(subjects);
     }
     else if(dates){
         const selectedTime = new Date(dates);
         const day = days[selectedTime.getDay()]
         console.log(day);
-        subjects = await webscraper.getSubjects(room, semester, year, [day])
+        subjects = await webscraper.getSubjectsFromDays(room, semester, year, [day])
     }
 
     console.log(subjects);
@@ -35,12 +35,26 @@ app.get('/room', async (req, res) => {
     
 })
 
-app.get('/roomfromdate', (req, res) => {
-    let room = req.query.roomNumber
+app.get('/allroom', async (req, res) => {
     let semester = req.query.semester
     let year = req.query.year
-    let day = req.query.date
-    res.send()
+    const days = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"]
+    floors = ["5", "6", "7", "8"]
+    // floors = ["5"]
+    allRoom = {}
+    for(let floor of floors){
+        for(let room=0; room<=11;room++){
+            const roomNumber = floor + room.toString().padStart(2, "0")
+            subjects = await webscraper.getSubjectsFromDays(roomNumber, semester, year, days)
+            let obj = Object.entries(subjects)[0]
+            allRoom[obj[0]] = obj[1]
+            console.log("obj : ", obj);
+        }
+    }
+    
+    
+    console.log(allRoom);
+    res.send(allRoom)
 })
 
 

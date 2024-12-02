@@ -1,6 +1,6 @@
 const { Builder, Browser, By } = require("selenium-webdriver");
 
-async function getSubjects(room, semester, year, days) {
+async function getSubjectsFromDays(room, semester, year, days) {
   const driver = await new Builder().forBrowser(Browser.CHROME).build();
   
   try {
@@ -29,7 +29,9 @@ async function getSubjects(room, semester, year, days) {
       for (let td of d) {
         count += 1;
         const subjectText = (await td.getText()).split("\n");
-        const subjectName = subjectText[0];
+        const subjectTitle = subjectText[0];
+        const subject_Id = subjectTitle.slice(0,7);
+        const subject_Name = subjectTitle.slice(9);
         const subjectProfessor = subjectText[1];
         const colspan = await td.getAttribute("colspan");
         
@@ -67,24 +69,25 @@ async function getSubjects(room, semester, year, days) {
 
 
           // merge existing subject
-          if (subjectName in Subjects) {
-            Subjects[subjectName] = [
-              Subjects[subjectName][0],
-              subjectEnd,
-              Subjects[subjectName][2],
-            ];
-            if (Subjects[subjectName][2] != subjectProfessor) {
-              Subjects[subjectName][2].push(subjectProfessor);
+          if (subjectTitle in Subjects) {
+            Subjects[subjectTitle] = {
+              ...Subjects[subjectTitle],
+              EndTime : subjectEnd
+            };
+            if (Subjects[subjectTitle]["subject_professor"] != subjectProfessor) {
+              Subjects[subjectTitle]["subject_professor"].push(subjectProfessor);
             }
           } 
           
           // add new subject
           else {
-            Subjects[subjectName] = [
-              subjectStart,
-              subjectEnd,
-              [subjectProfessor],
-            ];
+            Subjects[subjectTitle] = {
+              subject_id : subject_Id,
+              subject_name : subject_Name,
+              startTime : subjectStart,
+              EndTime : subjectEnd,
+              subject_professor : [subjectProfessor]
+            };
           }
         }
         // console.log(count, ": ", colspan, subjectText);
@@ -104,7 +107,7 @@ async function getSubjects(room, semester, year, days) {
   }
 };
 
-module.exports = {getSubjects}
+module.exports = {getSubjectsFromDays}
 
 // {
 //   monday : [
