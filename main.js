@@ -12,13 +12,24 @@ app.get('/room', async (req, res) => {
     let room = req.query.roomNumber
     let semester = req.query.semester
     let year = req.query.year
-    let day = req.query.date
-    subjects = {}
-    if(day == null){
-        date = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"]
-        subjects = await webscraper.getSubjects(room, semester, year, date)
-        console.log(subjects);
+    let dates = req.query.date
+    
+    days = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"]
+    console.log("input ", dates);
+    
+    if(dates == undefined || dates == ""){
+        console.log("true");
+        subjects = await webscraper.getSubjects(room, semester, year, days)
+        // console.log(subjects);
     }
+    else if(dates){
+        const selectedTime = new Date(dates);
+        const day = days[selectedTime.getDay()]
+        console.log(day);
+        subjects = await webscraper.getSubjects(room, semester, year, [day])
+    }
+
+    console.log(subjects);
     
     res.send(subjects)
     
